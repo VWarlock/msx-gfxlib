@@ -48,7 +48,11 @@ See the License at http://www.gnu.org/copyleft/lesser.txt
 /// get a dithered pattern of intensity \a I on the screen line \a Y
 #define DITHER(I, Y)	(dithpat[I][Y & 1])
 
-extern u_char dithpat[5][2];
+extern
+#ifdef __SDCC
+const
+#endif
+u_char dithpat[5][2];
 
 /// draw a line on a surface
 void surface_line(surface_t*, int x1, int y1, int x2, int y2);

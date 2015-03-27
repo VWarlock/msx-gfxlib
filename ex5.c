@@ -24,6 +24,10 @@ Contact the author:
 #include "gfx.h"
 #include "line.h"
 
+#ifdef __SDCC
+#include "defs_sdcc.h"
+#endif
+
 typedef struct {
 	int x;
 	int y;
@@ -40,6 +44,10 @@ main() {
 	surface_t surf;
 	point_t	p[MAX_POINT];
 
+#ifdef __SDCC
+        init();
+#endif
+
 	printf("calculating, wait...\n");
 
 	M_PI = 8.0 * atan(1.0);
@@ -53,8 +61,11 @@ main() {
 
 	// clear the off-screen surface
 	printf("clearing buffer...\n");
+#ifdef __SDCC
+	memset(buf, 0, MODE2_MAX);
+#else        
 	memset(buf, MODE2_MAX, 0);
-
+#endif
 	printf("drawing...\n");
 	surf.data.ram = buf;
 

@@ -41,6 +41,61 @@ See the License at http://www.gnu.org/copyleft/lesser.txt
 
 // do a interslot call to BIOS
 
+#ifdef __SDCC
+
+void relocate_callbios_from_rom_to_ram();
+
+void relocate_callbios_from_rom_to_ram() __naked {
+__asm
+
+callbios_ram_1      .equ #callbios_rom_1 - #callbios_rom_start + #callbios
+callbios_rom_length .equ #callbios_rom_end - #callbios_rom_start
+
+  push af
+  push bc
+  push de
+  push hl
+  ld hl, #callbios_rom_start
+  ld de, #callbios
+  ld bc, #callbios_rom_length
+  ldir
+  pop hl
+  pop de
+  pop bc
+  pop af
+  ret
+  
+callbios_rom_start:
+  ld      (callbios_ram_1), ix
+  rst     #0x30
+callbios_rom_0:
+  .db    0
+callbios_rom_1:
+  .dw    0
+  ret
+callbios_rom_end:
+  
+.area   _DATA
+callbios:
+  .ds #callbios_rom_length
+.area   _CODE           
+__endasm;
+}
+
+const u_char st_dir[]={
+        0x00, // 0
+        0x01, // 1
+        0x03, // 2
+        0x02, // 3
+        0x06, // 4
+        0x04, // 5
+        0x0C, // 6
+        0x08, // 7
+        0x09  // 8
+};
+
+#else 
+
 #asm
 
 psect text
@@ -75,6 +130,8 @@ _st_dir:
 
 #endasm
 
+#endif
+                           
 static int rnd = 0;
 
 void seed_rnd(int seed) {
@@ -87,11 +144,19 @@ u_char get_rnd() {
 }
 
 void init() {
+#ifdef __SDCC
+  // TODO: delimitare con #ifdef ROM ?
+  relocate_callbios_from_rom_to_ram();
+  
+#else
+
 #asm
 	;in a, (0A8h)
 	;and 0FCh
 	;out (0A8h), a
 #endasm
+
+#endif           
 }
 
 /*
@@ -114,7 +179,35 @@ void _init_sprites() {
 */
 #define _init_sprites()
 
-void set_vdp(u_char reg, u_char value) {
+void set_vdp(u_char reg, u_char value)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	f_wrtvdp .equ #0x0047
+
+	push bc
+
+	ld c, 4(ix)
+	ld b, 5(ix)
+
+	ld ix, #f_wrtvdp
+	call callbios
+
+	pop bc
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_wrtvdp equ 047h
 
@@ -130,13 +223,38 @@ void set_vdp(u_char reg, u_char value) {
 	pop ix
 	pop bc
 #endasm
+#endif          
 }
 
 u_char get_vdp(u_char reg) {
 	return *(u_char*)(0xF3DF + reg);
 }
 
-void set_mode(u_int mode) {
+void set_mode(u_int mode)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	push bc
+	ld c, 4(ix)
+	ld b, 5(ix)
+	push bc
+	pop ix
+	call callbios
+	pop bc
+
+	pop ix           ;epilogue
+	ret
+                            
+__endasm;
+#else
 #asm
 	push bc
 	push ix
@@ -148,6 +266,7 @@ void set_mode(u_int mode) {
 	pop ix
 	pop bc
 #endasm
+#endif          
 	_init_sprites();
 }
 
@@ -167,6 +286,16 @@ void set_color(u_char front, u_char back, u_char border) {
 	*(u_char*)0xf3e9 = front;
 	*(u_char*)0xf3ea = back;
 	*(u_char*)0xf3eb = border;
+#ifdef __SDCC
+__asm
+	f_chgclr .equ #0x0062
+
+	push ix
+	ld ix, #f_chgclr
+	call callbios
+	pop ix	
+__endasm;
+#else
 #asm
 	f_chgclr equ 062h
 
@@ -175,9 +304,88 @@ void set_color(u_char front, u_char back, u_char border) {
 	call callbios
 	pop ix	
 #endasm
+#endif          
 }
 
-void fill(u_int addr, u_char value, u_int count) {
+void cls()
+{
+#ifdef __SDCC
+__asm
+        push ix
+
+        f_cls .equ #0x00C3
+
+        push af
+	push bc
+	push de  
+	push hl
+
+	ld ix, #f_cls
+	call callbios
+
+	pop hl
+	pop de
+	pop bc
+        pop af
+
+	pop ix           ;epilogue
+	ret
+                            
+__endasm;
+#else
+#asm
+        f_cls equ 0C3h
+
+	push hl
+	push de
+	push bc
+	push ix
+
+	ld ix, f_cls
+	call callbios
+	pop ix
+	pop bc
+	pop de
+	pop hl
+#endasm
+#endif          
+}
+
+void fill(u_int addr, u_char value, u_int count)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+        f_filvrm .equ #0x0056
+
+        push af
+	push bc
+	push hl
+
+	ld l, 4(ix)
+	ld h, 5(ix)
+	ld c, 7(ix)
+	ld b, 8(ix)
+	ld a, 6(ix)
+
+	ld ix, #f_filvrm
+	call callbios
+
+	pop bc
+	pop hl
+        pop af
+
+	pop ix           ;epilogue
+	ret
+                            
+__endasm;
+#else
 #asm
 	f_filvrm equ 056h
 
@@ -197,11 +405,21 @@ void fill(u_int addr, u_char value, u_int count) {
 	pop bc
 	pop hl
 #endasm
+#endif          
 }
 
-void vpoke(u_int addr, u_char value) {
-#asm
-	f_wrtvrm equ 04Dh
+void vpoke(u_int addr, u_char value)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+	f_wrtvrm .equ #0x004D
 
 	;push hl
 	;push ix
@@ -216,8 +434,48 @@ void vpoke(u_int addr, u_char value) {
 	;pop ix
 	;pop hl
 
-	p_vdp_data equ 098H
-	p_vdp_cmd  equ 099H
+	p_vdp_data .equ #0x98
+	p_vdp_cmd  .equ #0x99
+
+	; enter vdp address pointer
+
+	ld a, 4(ix)
+	di
+	out (p_vdp_cmd), a
+	ld a, 5(ix)
+	and #0x3f
+	or  #0x40
+	ei
+	out (p_vdp_cmd), a
+
+	; enter data
+
+	ld a, 6(ix)
+	out (p_vdp_data), a
+
+	pop ix           ;epilogue
+	ret
+		
+__endasm;
+#else
+#asm
+	f_wrtvrm .equ 0x004D
+
+	;push hl
+	;push ix
+
+	;ld l, (ix+6)
+	;ld h, (ix+7)
+	;ld a, (ix+8)
+	
+	;ld ix, f_wrtvrm
+	;call callbios
+
+	;pop ix
+	;pop hl
+
+	p_vdp_data .equ 0x098
+	p_vdp_cmd  .equ 0x099
 
 	; enter vdp address pointer
 
@@ -236,9 +494,52 @@ void vpoke(u_int addr, u_char value) {
 	out (p_vdp_data), a
 		
 #endasm
+#endif            
 }
 
-u_char vpeek(u_int addr) {
+u_char vpeek(u_int addr)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+	f_rdvrm .equ 0x004A
+
+	;push hl
+	;push ix
+	;ld l, 6(ix)
+	;ld h, 7(ix)
+	;ld ix, f_rdvrm
+	;call callbios
+	;pop ix
+	;pop hl
+	;ld l, a
+
+	; enter vdp address pointer
+
+	ld a, 4(ix)
+	di
+	out (p_vdp_cmd), a
+	ld a, 5(ix)
+	and #0x3f
+	ei
+	out (p_vdp_cmd), a
+
+	; read data
+
+	in a, (p_vdp_data)
+	ld l, a
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_rdvrm equ 04Ah
 
@@ -267,9 +568,77 @@ u_char vpeek(u_int addr) {
 	in a, (p_vdp_data)
 	ld l, a
 #endasm
+#endif            
 }
 
-void vmerge(u_int addr, u_char value) {
+void vmerge(u_int addr, u_char value)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+	;f_wrtvrm .equ 0x004D
+	;f_rdvrm .equ 0x0004A
+
+	;push hl
+	;push ix
+
+	;ld l, 6(ix)
+	;ld h, 7(ix)
+	;ld ix, f_rdvrm
+	;call callbios
+
+	;pop ix
+	;push ix
+
+	;or 8(ix)
+	;ld ix, f_wrtvrm
+	;call callbios
+
+	;pop ix
+	;pop hl
+
+	; enter vdp address pointer
+
+	ld l, 4(ix)
+	ld h, 5(ix)
+	ld c, #p_vdp_cmd
+	ld b, c
+
+	di
+	out (c), l
+	ld a, h
+	and #0x3f
+	ei
+	out (c), a
+
+	; read data
+
+	ld c, #p_vdp_data
+	in h, (c)
+	ld c, b
+
+	; enter same address
+
+	di
+	out (c), l
+	or  #0x40
+	ei
+	out (c), a
+
+	ld a, 6(ix)
+	out (p_vdp_data), a
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	;f_wrtvrm equ 04Dh
 	;f_rdvrm equ 04Ah
@@ -323,9 +692,48 @@ void vmerge(u_int addr, u_char value) {
 	ld a, (ix+8)
 	out (p_vdp_data), a
 #endasm
+#endif            
 }
 
-void vwrite(void *source, u_int dest, u_int count) {
+void vwrite(void *source, u_int dest, u_int count)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	f_ldirvm .equ 0x0005C
+
+	push hl
+	push bc
+	push de
+	push ix
+
+	ld l, 4(ix)
+	ld h, 5(ix)
+	ld e, 6(ix)
+	ld d, 7(ix)
+	ld c, 8(ix)
+	ld b, 9(ix)
+
+	ld ix, #f_ldirvm
+	call callbios
+
+	pop ix
+	pop de
+	pop bc
+	pop hl
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_ldirvm equ 05Ch
 
@@ -349,9 +757,48 @@ void vwrite(void *source, u_int dest, u_int count) {
 	pop bc
 	pop hl
 #endasm
+#endif          
 }
 
-void vread(u_int source, void* dest, u_int count) {
+void vread(u_int source, void* dest, u_int count)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	f_ldirmv .equ 0x0056
+
+	push hl
+	push bc
+	push de
+	push ix
+
+	ld l, 4(ix)
+	ld h, 5(ix)
+	ld e, 6(ix)
+	ld d, 7(ix)
+	ld c, 8(ix)
+	ld b, 9(ix)
+
+	ld ix, #f_ldirmv
+	call callbios
+
+	pop ix
+	pop de
+	pop bc
+	pop hl
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_ldirmv equ 056h
 
@@ -375,17 +822,47 @@ void vread(u_int source, void* dest, u_int count) {
 	pop bc
 	pop hl
 #endasm
+#endif          
 }
 
-void locate(u_char x, u_char y) {
+void locate(u_char x, u_char y)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	f_posit .equ 0x00C6
+	
+	push hl
+	push ix
+
+	ld h, 4(ix)
+	ld l, 5(ix) ; --- TODO: controllare se va 6(ix) o 5(ix)
+	
+	ld ix, #f_posit
+	call callbios
+
+	pop ix
+	pop hl
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_posit equ 0C6h
 	
 	push hl
 	push ix
 
-	ld h, (ix+6)
-	ld l, (ix+8)
+	ld h, 6(ix)
+	ld l, 8(ix)
 	
 	ld ix, f_posit
 	call callbios
@@ -393,6 +870,7 @@ void locate(u_char x, u_char y) {
 	pop ix
 	pop hl
 #endasm
+#endif          
 }
 
 void pset(int x, int y) {
@@ -460,7 +938,41 @@ void fill_v(u_int addr, u_char value, u_char count) {
 
 }
 
-u_char get_stick(u_char id) {
+u_char get_stick(u_char id)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+	f_gtstck .equ 0x00D5
+
+	push hl
+	push de
+	push bc
+	push ix
+
+	ld a, 4(ix)
+	ld ix, #f_gtstck
+	call callbios
+
+	pop ix
+	pop bc
+	pop de
+	pop hl
+	
+	ld l, a
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_gtstck equ 0D5h
 
@@ -480,9 +992,36 @@ u_char get_stick(u_char id) {
 	
 	ld l, a
 #endasm
+#endif          
 }
 
-bool get_trigger(u_char id) {
+bool get_trigger(u_char id)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+
+	f_gttrig .equ 0x00D8
+
+	push ix
+	ld a, 4(ix)
+
+	ld ix, #f_gttrig
+	call callbios
+	pop ix
+	ld l, a
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_gttrig equ 0D8h
 
@@ -494,6 +1033,7 @@ bool get_trigger(u_char id) {
 	pop ix
 	ld l, a	
 #endasm
+#endif          
 }
 
 void set_sprite_mode(u_char mode) {
@@ -574,6 +1114,16 @@ void blit(surface_t *source, surface_t *dest, rect_t *from, rect_t *to) {
 */
 
 void psg_init() {
+#ifdef __SDCC
+__asm
+	f_gicini .equ 0x0090
+
+	push ix
+	ld ix, #f_gicini
+	call callbios
+	pop ix
+__endasm;
+#else
 #asm
 	f_gicini equ 090h
 
@@ -582,11 +1132,74 @@ void psg_init() {
 	call callbios
 	pop ix
 #endasm
+#endif          
 }
 
-void psg_set(u_char reg, u_char value) {
+
+void psg_set(u_char reg, u_char value)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC  
+/*
+	WRTPSG (0093H)		*1
+	Function:  writes data in the PSG register
+	Input:     A for PSG register number, E for data
+	Output:    none
+	Registers: none
+
+	RDPSG (0096H)		*1
+	Function:  reads the PSG register value
+	Input:     A for PSG register number
+	Output:    A for the value which was read
+	Registers: none
+*/
+__asm
+	push	ix  ; prologue
+	ld	ix, #0x0000
+	add	ix, sp
+
+	f_wrtpsg .equ 0x0093
+	f_rdpsg  .equ 0x0096
+
+        push af
+	push de
+	ld a, 4(ix)          
+        cp #0x07
+        jr nz, 00001$ ; if not reg 7 then perform the usual wrtpsg call ...
+          
+	push ix
+	ld ix, #f_rdpsg ; ... else mask bits 6 and 7 of register 7
+	call callbios
+	pop ix
+
+        and #0xc0
+	ld d, a ; save bits 6 and 7 in reg d
+	ld a, 5(ix)
+	and #0x3f
+	or d
+	ld e, a ; e <- { 4(ix) masked by d }
+	ld a, #0x07
+	jr 00002$                     
+                        
+00001$:	ld e, 5(ix)
+00002$:	push ix
+	ld ix, #f_wrtpsg
+	call callbios
+	pop ix
+
+	pop de
+	pop af
+
+	pop ix           ;epilogue
+	ret
+
+__endasm;
+#else
 #asm
 	f_wrtpsg equ 093h
+	f_rdpsg  equ 096h
 
 	push de
 	push ix
@@ -598,9 +1211,35 @@ void psg_set(u_char reg, u_char value) {
 	pop ix
 	pop de
 #endasm
+#endif          
 }
 
-u_char psg_get(u_char reg) {
+u_char psg_get(u_char reg)
+#ifdef __SDCC
+  __naked
+#endif
+{
+#ifdef __SDCC
+__asm
+	push	ix  	; prologue
+	ld	ix,#0
+	add	ix,sp
+  
+	f_rdpsg .equ 0x0096
+
+	ld a, 4(ix)
+	push ix
+	ld ix, #f_rdpsg
+	call callbios
+	pop ix
+
+        ld h, #0x00
+        ld l, a
+
+	pop ix           ;epilogue
+	ret
+__endasm;
+#else
 #asm
 	f_rdpsg equ 096h
 
@@ -610,6 +1249,7 @@ u_char psg_get(u_char reg) {
 	call callbios
 	pop ix
 #endasm
+#endif          
 }
 
 void psg_tone(u_char channel, int period) {
@@ -664,3 +1304,6 @@ void psg_init_tone_table(int tones[128]) {
 		tones[c] = psgT(n);
 	}
 }
+
+// TODO: reg 7 masking
+

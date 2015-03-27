@@ -451,6 +451,18 @@ void hline(int x1, int y1, int x2, u_char value) {
 	}
 }
 
+#ifdef __SDCC
+
+const u_char dithpat[5][2]={
+  { 0x00, 0x00 },
+  { 0x00, 0xAA },
+  { 0x55, 0xAA },
+  { 0xFF, 0xAA },
+  { 0xFF, 0xFF }
+};
+
+#else
+
 #asm
 psect data
 
@@ -471,3 +483,5 @@ _dithpat:
 	defb	11111111B
 	defb	11111111B
 #endasm
+
+#endif

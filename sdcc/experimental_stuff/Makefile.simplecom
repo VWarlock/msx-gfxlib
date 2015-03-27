@@ -1,0 +1,42 @@
+CC='$(SDCC_HOME)'/bin/sdcc
+AS='$(SDCC_HOME)'/bin/sdasz80
+CFLAGS+= --code-loc 0x0170 --data-loc 0xc000 -mz80 --no-std-crt0
+CRTOBJ?=sdcc/crt/crt0msx.msxdos.rel
+CRTSRC?=sdcc/crt/crt0msx.msxdos.s
+MAKEBIN?='$(SDCC_HOME)'/bin/makebin
+PROJECT?=simplecom
+OBJ?=gfx.rel
+
+all: build symbols
+
+symbols:
+	gawk 'BEGIN { FS=" "; } /DEF.*/ { print $$2 ": equ 0" substr($$3,3) "h"; }' < $(PROJECT).noi | grep -v "_end: equ " > $(PROJECT).tniasm.sym
+
+build: $(PROJECT).com
+
+$(PROJECT).com: $(PROJECT).ihx
+	$(MAKEBIN) -s 65536 < $< | dd of=$@ bs=1 skip=256 count=32768
+
+%.rel: %.c
+	$(CC) -c $(CFLAGS) $<
+
+$(CRTOBJ): $(CRTSRC)
+	$(AS) -o $(CRTOBJ) $(CRTSRC)
+
+$(PROJECT).ihx: $(PROJECT).rel $(CRTOBJ) $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o$(PROJECT).ihx $(CRTOBJ) $(PROJECT).rel $(OBJ)
+
+clean:
+	$(RM) -v *.com *.sym *.lnk *.ihx *.map *.lst *.rel *.asm *.s *.bin *.lk *.noi 64k.mem *.rom *.rst $(CRTOBJ)
+
+heap.s: $(SDCC_HOME)/lib/src/z80/heap.s
+	sed -e 's/1023/7000/' "$(SDCC_HOME)"/lib/src/z80/heap.s > ./heap.s
+
+heap.rel: heap.s
+	$(AS) -o heap.rel heap.s
+
+help:
+	@echo Usage:
+	@echo "make clean    = clean intermediate files"
+	@echo "variables: PROJECT CFLAGS CRTOBJ CRTSRC"
+	@echo "variables: CC AS MAKEBIN"

@@ -90,6 +90,9 @@ extern void set_mangled_mode();
 /// set screen color
 extern void set_color(u_char front, u_char back, u_char border);
 
+/// clear screen
+extern void cls();
+
 /// fill vram from \a addr, with \a value, for \a count bytes
 extern void fill(u_int addr, u_char value, u_int count);
 
@@ -193,11 +196,11 @@ extern void put_sprite_16(u_char id, int x, int y, u_char handle, u_char color);
 
 /// represents a drawing surface
 typedef struct {
-        int width;
-        int height;
+	int width;
+	int height;
 	int type;
 	union {
-        u_char* ram;	///< ram adress, for off-screen surfaces
+		u_char* ram;	///< ram adress, for off-screen surfaces
 		u_int vram;
 	} data;
 } surface_t;
@@ -227,7 +230,11 @@ enum stick_direction {
 	st_left = 8
 };
 
-extern u_char st_dir[];
+extern
+#ifdef __SDCC
+const
+#endif
+u_char st_dir[];
 
 /// get state of joystick number \a id
 extern u_char get_stick(u_char id);
@@ -312,6 +319,8 @@ u_char psg_noise_channels();
 
 /// initialize a lookup table for tones (in period units)
 void psg_init_tone_table(int tones[128]);
+
+void init();
 
 //@}
 

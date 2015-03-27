@@ -22,6 +22,10 @@ Contact the author:
 #include <math.h>
 #include "gfx.h"
 
+#ifdef __SDCC
+#include "defs_sdcc.h"
+#endif
+
 typedef struct {
 	int x;
 	int y;
@@ -34,6 +38,10 @@ main() {
 	double	a;
 	int	c, i, l;
 	point_t	p[MAX_POINT];
+
+#ifdef __SDCC
+        init();
+#endif        
 
 	printf("calculating, wait...");
 

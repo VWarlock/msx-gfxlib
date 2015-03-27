@@ -24,7 +24,16 @@ Contact the author:
 #include <stdlib.h>
 #include "gfx.h"
 
+#ifdef __SDCC
+const u_char star[]={
+  0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+#else
 extern u_char star[];
+#endif
 
 typedef struct {
 	int x;
@@ -60,6 +69,10 @@ main() {
 	u_char c;
 	star_t *st, stars[MAX_STARS];
 
+#ifdef __SDCC
+        init();
+#endif        
+
 	set_color(15, 1, 1);
 
 	// set video mode to screen 2
@@ -94,6 +107,9 @@ main() {
 	set_mode(mode_0);
 }
 
+#ifdef __SDCC
+#else
+
 #asm
 
 psect data
@@ -105,3 +121,5 @@ _star:
 	defb 0, 0, 0, 0, 0, 0, 0, 0
 	defb 0, 0, 0, 0, 0, 0, 0, 0
 #endasm
+
+#endif

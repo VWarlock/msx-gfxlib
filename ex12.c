@@ -24,6 +24,10 @@ Contact the author:
 main() {
 	int tone[128];
 
+#ifdef __SDCC
+        init();
+#endif        
+
 	// prepare for the lamest example ever :)
 	// at least is very simple and self-explained
 
