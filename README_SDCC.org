@@ -65,11 +65,11 @@ commands:
 #+END_SRC
 
 * Roadmap of improvements
-** Bug corrections
+** Bug corrections to be done
   - add file I/O functions to ~ex8.c~ and compile it
   - don't assume BIOS is always in slot zero, use EXPTBL value instead
   
-** Library enhancements
+** Future enhancements proposed
   - add support for MSX pad primitives
   - add support for mouse?
   - split ~gfx.c~ in several files (so linker can include just the
