@@ -1,50 +1,60 @@
-CC='$(SDCC_HOME)'/bin/sdcc
-AS='$(SDCC_HOME)'/bin/sdasz80
-CFLAGS+= --code-loc 0x4020 --data-loc 0xc000 -mz80 --no-std-crt0
-CRTOBJ?=sdcc/crt/crt0msx.32k.4000.rel
-CRTSRC?=sdcc/crt/crt0msx.32k.4000.s
+SDCC='$(SDCC_HOME)'/bin/sdcc
+SDAS='$(SDCC_HOME)'/bin/sdasz80
 MAKEBIN?='$(SDCC_HOME)'/bin/makebin
+
+UNIX_DIR?=c:\\msys64\\usr\\bin
+UNIX_RM?=$(UNIX_DIR)\\rm -f -v
+UNIX_DD?=$(UNIX_DIR)\\dd
+UNIX_SED?=$(UNIX_DIR)\\sed
+UNIX_AWK?=$(UNIX_DIR)\\gawk
+UNIX_GREP?=$(UNIX_DIR)\\grep
+
+CFLAGS?=--code-loc 0x4020 --data-loc 0xc000 -mz80 --no-std-crt0 --fsigned-char
 ROM16KBLOCKS?=2
 ROM16KSKIP?=1
-GFXLIB?=gfx.rel line.rel
 OTHERLIBS?=
-PROJECT?=ex1
 
-all: build symbols
+CRTOBJ?=sdcc/crt/crt0msx.32k.4000.rel
+CRTSRC?=sdcc/crt/crt0msx.32k.4000.s
+GFXLIB?=gfx.rel line.rel
+ROMS_HEAP_REL=ex5.rel ex10.rel
+ROMS_3D_REL=ex11.rel
 
-symbols:
-	gawk 'BEGIN { FS=" "; } /DEF.*/ { print $$2 ": equ 0" substr($$3,3) "h"; }' < $(PROJECT).noi | grep -v "_end: equ " > $(PROJECT).tniasm.sym
+all: roms
 
-build: $(PROJECT).rom
+roms: ex1.rom ex2.rom ex3.rom ex4.rom ex5.rom ex6.rom ex7.rom ex9.rom ex10.rom ex11.rom ex12.rom
 
-$(PROJECT).rom: $(PROJECT).ihx
-	$(MAKEBIN) -s 65536 < $< >64k.mem
-	dd if=64k.mem of=$@ bs=16384 skip=$(ROM16KSKIP) count=$(ROM16KBLOCKS)
+
+%.rom: %.ihx
+	$(MAKEBIN) -s 65536 < $< > $<.mem
+	$(UNIX_DD) if=$<.mem of=$@ bs=16384 skip=$(ROM16KSKIP) count=$(ROM16KBLOCKS)
+	$(UNIX_RM) $<.mem
 
 %.rel: %.c
-	$(CC) -c $(CFLAGS) $<
+	$(SDCC) -c $(CFLAGS) $<
 
 $(CRTOBJ): $(CRTSRC)
-	$(AS) -o $(CRTOBJ) $(CRTSRC)
+	$(SDAS) -o $(CRTOBJ) $(CRTSRC)
 
-$(PROJECT).ihx: $(PROJECT).rel $(GFXLIB) $(OTHERLIBS) $(CRTOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o$(PROJECT).ihx $(CRTOBJ) $(PROJECT).rel $(GFXLIB) $(OTHERLIBS)
+%.ihx: %.rel $(GFXLIB) $(OTHERLIBS) heap.rel 3d.rel $(CRTOBJ)
+	$(SDCC) $(CFLAGS) $(LDFLAGS) -o$@ $(CRTOBJ) $< $(GFXLIB) $(OTHERLIBS) $(if $(filter $< , ex5.rel ex10.rel), ,heap.rel) $(if $(filter $< , ex10.rel), ,3d.rel)
 
 clean:
-	$(RM) -v $(ROM) *.sym *.lnk *.ihx *.map *.lst *.rel *.asm *.s *.bin *.lk *.noi 64k.mem *.rom *.rst *.adb *.cdb $(CRTOBJ)
+	$(UNIX_RM) $(ROM) *.sym *.lnk *.ihx *.map *.lst *.rel *.asm *.s *.bin *.lk *.noi 64k.mem *.rom *.rst *.adb *.cdb $(CRTOBJ)
 
 heap.s: $(SDCC_HOME)/lib/src/z80/heap.s
-	sed -e 's/1023/9000/' "$(SDCC_HOME)"/lib/src/z80/heap.s > ./heap.s
+	$(UNIX_SED) -e 's/1023/9000/' "$(SDCC_HOME)"/lib/src/z80/heap.s > ./heap.s
 
 heap.rel: heap.s
-	$(AS) -o heap.rel heap.s
+	$(SDAS) -o heap.rel heap.s
 
 help:
 	@echo Usage:
-	@echo "make clean    = clean intermediate files"
+	@echo "  make clean                     = clean intermediate files"
+	@echo "  make -f Makefile.sdcc all      = build all roms"
+	@echo "  make -f Makefile.sdcc ex10.rom = build only ex10.rom"
+	@echo ""
 	@echo "variables: PROJECT CFLAGS GFXLIB CRTOBJ CRTSRC"
 	@echo "variables: CC AS MAKEBIN"
 	@echo "variables: ROM16KBLOCKS ROM16KSKIP"
-	@echo "1) how to build ex10.c with enlarged heap (7000 bytes instead of default 1024):"
-	@echo "  1.1) make -f Makefile.sdcc heap.rel"
-	@echo "  1.2) make -f Makefile.sdcc PROJECT=ex10 OTHERLIBS=heap.rel"
+	@echo "Example: how to build ex10.rom"

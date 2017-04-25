@@ -10,8 +10,7 @@
             primitives in SDCC)
 
 * Where are the precompiled examples?
-The compiled .ROM files are in subdirectory sdcc/rom_examples. I
-compiled them with SDCC 3.4.2.
+The compiled .ROM files are included in the Release packages. I successfully compiled them with SDCC 3.6.0.
 
 * Compiling the examples with SDCC
 ** Prerequisites
@@ -22,47 +21,34 @@ important to least important): ~make~, ~dd~, ~rm~, ~sed~,
 Windows find them with Google (search for "UnxUtils").
 
 ** How to compile using Makefile.sdcc
-Go to the same directory of ~Makefile.sdcc~ and type the following
+Cd to the same directory of ~Makefile.sdcc~ and type the following
 commands:
 
 #+BEGIN_SRC sh
-  # let's start from a clean directory
+  # To compile all the working examples:
+  #
+  make -f Makefile.sdcc all
+
+  # to clean the directory from all intermediate files
+  # (.rel, .asm etc.):
   #
   make -f Makefile.sdcc clean
 
-  # let's prepare custom heap for examples
+  # This will compile the custom heap for examples
   # that need big space for malloc; 9000 bytes
   # proved sufficient for all included examples
   #
   make -f Makefile.sdcc heap.rel
 
-  # these examples are known to work with SDCC
-  #
-  make -f Makefile.sdcc PROJECT=ex1
-  make -f Makefile.sdcc PROJECT=ex2
-  make -f Makefile.sdcc PROJECT=ex3
-  make -f Makefile.sdcc PROJECT=ex4
-  make -f Makefile.sdcc PROJECT=ex6
-  make -f Makefile.sdcc PROJECT=ex7
-  make -f Makefile.sdcc PROJECT=ex9
-  make -f Makefile.sdcc PROJECT=ex12
-
-  # these examples are known to work with SDCC
-  # but need enlarged heap for big mallocs
-  #
-  make -f Makefile.sdcc PROJECT=ex5 OTHERLIBS=heap.rel
-  make -f Makefile.sdcc PROJECT=ex10 OTHERLIBS=heap.rel
-
-  # ex11.c works with SDCC but needs enlarged heap and 3d.rel
-  #
-  make -f Makefile.sdcc PROJECT=ex11 GFXLIB="gfx.rel line.rel 3d.rel" OTHERLIBS=heap.rel
-
-  # can't test this on SDCC yet: it needs .COM format
+  # This doesn't work on SDCC yet: it needs .COM format
   # and file functions (fread, fseek etc.)
   #
-  # make -f Makefile.sdcc PROJECT=ex8
+  # make -f Makefile.sdcc ex8.rom
 
 #+END_SRC
+
+** Notes about compilation flags
+I had to enable ~-fsigned-char~ because SDCC 3.6.0 and later assume that ~char~ type is unsigned.
 
 * Roadmap of improvements
 ** Bug corrections to be done
