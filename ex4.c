@@ -33,6 +33,9 @@ typedef struct {
 
 #define MAX_POINT	256
 
+#ifdef __SDCC
+void
+#endif
 main() {
 	double	M_PI;
 	double	a;

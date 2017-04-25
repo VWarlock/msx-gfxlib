@@ -65,6 +65,9 @@ void star_move(star_t* st) {
 
 #define MAX_STARS 16
 
+#ifdef __SDCC
+void
+#endif
 main() {
 	u_char c;
 	star_t *st, stars[MAX_STARS];

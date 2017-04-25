@@ -66,6 +66,9 @@ extern u_char diamond[8];
 extern u_char diamond_attr[8];
 #endif
 
+#ifdef __SDCC
+void
+#endif
 main() {
 	int d;
 	int x, y;

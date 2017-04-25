@@ -39,6 +39,12 @@ See the License at http://www.gnu.org/copyleft/lesser.txt
 
 #include "gfx.h"
 
+#ifdef __SDCC
+#define SDCC_NAKED_FN __naked
+#else
+#define SDCC_NAKED_FN
+#endif
+
 // do a interslot call to BIOS
 
 #ifdef __SDCC
@@ -179,11 +185,10 @@ void _init_sprites() {
 */
 #define _init_sprites()
 
-void set_vdp(u_char reg, u_char value)
 #ifdef __SDCC
-  __naked
+#pragma disable_warning 85
 #endif
-{
+void set_vdp(u_char reg, u_char value) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -230,11 +235,7 @@ u_char get_vdp(u_char reg) {
 	return *(u_char*)(0xF3DF + reg);
 }
 
-void set_mode(u_int mode)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void set_mode(u_int mode) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -351,11 +352,10 @@ __endasm;
 #endif          
 }
 
-void fill(u_int addr, u_char value, u_int count)
 #ifdef __SDCC
-  __naked
+#pragma disable_warning 85
 #endif
-{
+void fill(u_int addr, u_char value, u_int count) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -379,7 +379,7 @@ __asm
 
 	pop bc
 	pop hl
-        pop af
+	pop af
 
 	pop ix           ;epilogue
 	ret
@@ -408,11 +408,7 @@ __endasm;
 #endif          
 }
 
-void vpoke(u_int addr, u_char value)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void vpoke(u_int addr, u_char value) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -497,11 +493,7 @@ __endasm;
 #endif            
 }
 
-u_char vpeek(u_int addr)
-#ifdef __SDCC
-  __naked
-#endif
-{
+u_char vpeek(u_int addr) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -571,11 +563,7 @@ __endasm;
 #endif            
 }
 
-void vmerge(u_int addr, u_char value)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void vmerge(u_int addr, u_char value) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -695,11 +683,7 @@ __endasm;
 #endif            
 }
 
-void vwrite(void *source, u_int dest, u_int count)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void vwrite(void *source, u_int dest, u_int count) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -760,11 +744,7 @@ __endasm;
 #endif          
 }
 
-void vread(u_int source, void* dest, u_int count)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void vread(u_int source, void* dest, u_int count) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -825,11 +805,7 @@ __endasm;
 #endif          
 }
 
-void locate(u_char x, u_char y)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void locate(u_char x, u_char y) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -938,11 +914,7 @@ void fill_v(u_int addr, u_char value, u_char count) {
 
 }
 
-u_char get_stick(u_char id)
-#ifdef __SDCC
-  __naked
-#endif
-{
+u_char get_stick(u_char id) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -995,11 +967,7 @@ __endasm;
 #endif          
 }
 
-bool get_trigger(u_char id)
-#ifdef __SDCC
-  __naked
-#endif
-{
+bool get_trigger(u_char id) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 
@@ -1136,11 +1104,7 @@ __endasm;
 }
 
 
-void psg_set(u_char reg, u_char value)
-#ifdef __SDCC
-  __naked
-#endif
-{
+void psg_set(u_char reg, u_char value) SDCC_NAKED_FN {
 #ifdef __SDCC  
 /*
 	WRTPSG (0093H)		*1
@@ -1214,11 +1178,7 @@ __endasm;
 #endif          
 }
 
-u_char psg_get(u_char reg)
-#ifdef __SDCC
-  __naked
-#endif
-{
+u_char psg_get(u_char reg) SDCC_NAKED_FN {
 #ifdef __SDCC
 __asm
 	push	ix  	; prologue
@@ -1291,6 +1251,9 @@ u_char psg_tone_channels() {
 	return (psg_get(7) >> 3) & 7;
 }
 
+#ifdef __SDCC
+#pragma disable_warning 93
+#endif
 void psg_init_tone_table(int tones[128]) {
 	// this is not the most precise method of calculation
 	// but it is fast!

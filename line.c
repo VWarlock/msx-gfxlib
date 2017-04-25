@@ -128,6 +128,9 @@ void compute_line(int x1, int y1, int x2, int y2, line_t *r) {
 	}
 }
 
+#ifdef __SDCC
+#pragma disable_warning 84
+#endif
 void line(int x1, int y1, int x2, int y2)
 {
 	REVERSE_LINE_T_MEMBERS;

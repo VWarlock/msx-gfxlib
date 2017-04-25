@@ -21,6 +21,9 @@ Contact the author:
 #include <stdlib.h>
 #include "gfx.h"
 
+#ifdef __SDCC
+void
+#endif
 main() {
 	u_char g[8];
 	u_int addr;
