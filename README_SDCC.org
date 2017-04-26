@@ -3,7 +3,7 @@
 - OK :: basic graphic functions and sprites
 - OK :: joystick support
 - OK :: PSG functions
-- OK :: line drawing functions
+- BROKEN :: line drawing functions (~ex5.c~ compiles but doesn't work at runtime)
 - OK :: surface_t and polygon filling
 - OK :: 3D functions
 - BROKEN :: ~ex8.c~ (doesn't compile due to lack of I/O file
