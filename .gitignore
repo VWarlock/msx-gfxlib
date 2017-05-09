@@ -10,6 +10,10 @@ ex*.lk
 ex*.map
 ex*.noi
 ex*.sym
+ex*.ihx
+ex*.ddmem
+ex*.noitmp
+ex*.sdccsym
 3d.asm
 3d.lst
 3d.sym
