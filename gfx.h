@@ -68,7 +68,7 @@ enum screen_map {
 };
 
 /// screen 2 section bytecount
-#define MODE2_MAX	(256 * 24)
+#define MODE2_MAX	(8 * 32 * 24)
 
 /// screen 2 attributes section start address
 #define MODE2_ATTR	(8192)

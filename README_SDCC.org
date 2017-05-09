@@ -10,16 +10,16 @@
             primitives in SDCC)
 
 * Where are the precompiled examples?
-The compiled .ROM files are included in the Release packages. I successfully compiled them with SDCC 3.6.0.
+The compiled .ROM files are included in the Release packages. I successfully compiled them with SDCC 3.6.6 build 9903.
 
 * Compiling the examples with SDCC
 ** Prerequisites
-You need to have installed SDCC and to have set the environment
-variable ~SDCC_HOME~. You also need some Unix utilities (from most
-important to least important): ~make~, ~dd~, ~rm~, ~sed~,
+You need to have in your PATH these programs: ~make~, ~dd~, ~rm~, ~sed~,
 ~gawk~. Linux users always have them installed, but if you work on
 Windows find them with Google (search for "UnxUtils").
 
+You also need to have SDCC utilities in your PATH and to set the variable
+~SDCC_HOME~.
 ** How to compile using Makefile.sdcc
 Cd to the same directory of ~Makefile.sdcc~ and type the following
 commands:

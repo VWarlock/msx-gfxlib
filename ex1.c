@@ -51,7 +51,7 @@ void star_move(star_t* st) {
 	st->sub  = map_subpixel(x);
 }
 
-#define MAX_STARS 16
+#define MAX_STARS 4
 
 #ifdef __SDCC
 void
@@ -60,7 +60,11 @@ void
 main() {
 	u_char c;
 	star_t *st, stars[MAX_STARS];
-        
+
+#ifdef __SDCC
+        init();
+#endif
+
 	set_color(15, 1, 1);
 
 	// set video mode to screen 2
