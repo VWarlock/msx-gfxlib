@@ -103,10 +103,6 @@ main() {
 	// our solid :)
 	object_t triangle;
 
-#ifdef __SDCC
-        init();
-#endif        
-
         pbuffer = newa(vector_t, 32);
         sbuffer = (u_char*)malloc(MODE2_MAX);
 

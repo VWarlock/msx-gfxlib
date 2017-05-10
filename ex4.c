@@ -42,10 +42,6 @@ main() {
 	int	c, i, l;
 	point_t	p[MAX_POINT];
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	printf("calculating, wait...");
 
 	M_PI = 8.0 * atan(1.0);

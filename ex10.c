@@ -34,10 +34,6 @@ main() {
 	u_char i;
 	surface_t surf;
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	buf = (u_char*)malloc(MODE2_MAX);
 	surf.data.ram = buf;
 

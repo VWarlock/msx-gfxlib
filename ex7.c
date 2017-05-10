@@ -208,10 +208,6 @@ main() {
 	u_char *l;
 	u_char map[MAP_WIDTH * MAP_HEIGHT];
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	// set screen
 	set_color(15, 1, 1);
 	set_mangled_mode();

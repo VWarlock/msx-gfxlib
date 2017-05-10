@@ -117,10 +117,6 @@ main(int argc, char *argv[]) {
 	bool preview;
 	u_char buf[MAX_BUF];
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	// bouring argv stuff
 	if (!--argc) {
 		printf("Usage: ex8 [-]file.alf\n");

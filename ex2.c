@@ -30,10 +30,6 @@ main() {
 	int c;
 	u_char buf[256];
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	set_color(15, 1, 1);
 
 	// set video mode to screen 2

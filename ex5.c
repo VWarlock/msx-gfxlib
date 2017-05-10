@@ -43,7 +43,7 @@ main() {
 	surface_t surf;
 	point_t	p[MAX_POINT];
 #ifdef __SDCC
-        init();
+       // init();
 #endif
     buf = (u_char*)malloc(MODE2_MAX);
     printf("calculating, wait...\n");

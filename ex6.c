@@ -73,10 +73,6 @@ main() {
 	int d;
 	int x, y;
 
-#ifdef __SDCC
-        init();
-#endif        
-
 	set_color(15, 1, 1);
 	set_mangled_mode();
 
