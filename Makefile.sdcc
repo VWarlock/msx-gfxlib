@@ -54,7 +54,7 @@ $(CRTOBJ): $(CRTSRC)
 	$(SDAS) -o $(CRTOBJ) $(CRTSRC)
 
 clean:
-	$(RM) *.ddmem *.rom *.sym *.sdccsym *.lnk *.ihx *.ihxtmp *.map *.lst *.rel *.asm *.s *.bin *.lk *.noi *.ddmem *.rom *.rst *.adb *.cdb $(CRTOBJ)
+	$(RM) *.ddmem *.rom *.sym *.sdccsym *.lnk *.ihx *.ihxtmp *.map *.lst *.rel *.asm *.s *.bin *.lk *.noi *.noitmp *.ddmem *.rom *.rst *.adb *.cdb $(CRTOBJ)
 
 version:
 	$(SDCC) -v
